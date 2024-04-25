@@ -6,6 +6,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	yaml "gopkg.in/yaml.v2"
 
+	errorsmod "cosmossdk.io/errors"
+	cosmossdk_io_math "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -84,21 +87,21 @@ func (m MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 // ValidateBasic implements Msg
 func (m MsgSubmitProposal) ValidateBasic() error {
 	if m.Proposer == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Proposer)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Proposer)
 	}
 	if !m.InitialDeposit.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.InitialDeposit.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.InitialDeposit.String())
 	}
 	if m.InitialDeposit.IsAnyNegative() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.InitialDeposit.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.InitialDeposit.String())
 	}
 
 	content := m.GetContent()
 	if content == nil {
-		return sdkerrors.Wrap(ErrInvalidProposalContent, "missing content")
+		return errorsmod.Wrap(ErrInvalidProposalContent, "missing content")
 	}
 	if !IsValidProposalType(content.ProposalType()) {
-		return sdkerrors.Wrap(ErrInvalidProposalType, content.ProposalType())
+		return errorsmod.Wrap(ErrInvalidProposalType, content.ProposalType())
 	}
 	return content.ValidateBasic()
 }
@@ -143,13 +146,13 @@ func (msg MsgDeposit) Type() string { return TypeMsgDeposit }
 // ValidateBasic implements Msg
 func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Depositor)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.Depositor)
 	}
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 	if msg.Amount.IsAnyNegative() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	return nil
@@ -189,11 +192,11 @@ func (msg MsgVote) Type() string { return TypeMsgVote }
 // ValidateBasic implements Msg
 func (msg MsgVote) ValidateBasic() error {
 	if msg.Voter == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter)
 	}
 
 	if !ValidVoteOption(msg.Option) {
-		return sdkerrors.Wrap(ErrInvalidVote, msg.Option.String())
+		return errorsmod.Wrap(ErrInvalidVote, msg.Option.String())
 	}
 
 	return nil
@@ -233,32 +236,32 @@ func (msg MsgVoteWeighted) Type() string { return TypeMsgVoteWeighted }
 // ValidateBasic implements Msg
 func (msg MsgVoteWeighted) ValidateBasic() error {
 	if msg.Voter == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter)
 	}
 
 	if len(msg.Options) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, WeightedVoteOptions(msg.Options).String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, WeightedVoteOptions(msg.Options).String())
 	}
 
-	totalWeight := sdk.NewDec(0)
+	totalWeight := cosmossdk_io_math.LegacyNewDec(0)
 	usedOptions := make(map[VoteOption]bool)
 	for _, option := range msg.Options {
 		if !ValidWeightedVoteOption(option) {
-			return sdkerrors.Wrap(ErrInvalidVote, option.String())
+			return errorsmod.Wrap(ErrInvalidVote, option.String())
 		}
 		totalWeight = totalWeight.Add(option.Weight)
 		if usedOptions[option.Option] {
-			return sdkerrors.Wrap(ErrInvalidVote, "Duplicated vote option")
+			return errorsmod.Wrap(ErrInvalidVote, "Duplicated vote option")
 		}
 		usedOptions[option.Option] = true
 	}
 
-	if totalWeight.GT(sdk.NewDec(1)) {
-		return sdkerrors.Wrap(ErrInvalidVote, "Total weight overflow 1.00")
+	if totalWeight.GT(cosmossdk_io_math.LegacyNewDec(1)) {
+		return errorsmod.Wrap(ErrInvalidVote, "Total weight overflow 1.00")
 	}
 
-	if totalWeight.LT(sdk.NewDec(1)) {
-		return sdkerrors.Wrap(ErrInvalidVote, "Total weight lower than 1.00")
+	if totalWeight.LT(cosmossdk_io_math.LegacyNewDec(1)) {
+		return errorsmod.Wrap(ErrInvalidVote, "Total weight lower than 1.00")
 	}
 
 	return nil

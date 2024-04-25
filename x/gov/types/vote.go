@@ -8,6 +8,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	cosmossdk_io_math "cosmossdk.io/math"
 )
 
 // NewVote creates a new Vote instance
@@ -58,7 +60,7 @@ func (v Vote) Empty() bool {
 
 // NewNonSplitVoteOption creates a single option vote with weight 1
 func NewNonSplitVoteOption(option VoteOption) WeightedVoteOptions {
-	return WeightedVoteOptions{{option, sdk.NewDec(1)}}
+	return WeightedVoteOptions{{option, cosmossdk_io_math.LegacyNewDec(1)}}
 }
 
 func (v WeightedVoteOption) String() string {
@@ -79,7 +81,7 @@ func (v WeightedVoteOptions) String() (out string) {
 
 // ValidWeightedVoteOption returns true if the sub vote is valid and false otherwise.
 func ValidWeightedVoteOption(option WeightedVoteOption) bool {
-	if !option.Weight.IsPositive() || option.Weight.GT(sdk.NewDec(1)) {
+	if !option.Weight.IsPositive() || option.Weight.GT(cosmossdk_io_math.LegacyNewDec(1)) {
 		return false
 	}
 	return ValidVoteOption(option.Option)
@@ -108,7 +110,7 @@ func WeightedVoteOptionsFromString(str string) (WeightedVoteOptions, error) {
 		if len(fields) < 2 {
 			return options, fmt.Errorf("weight field does not exist for %s option", fields[0])
 		}
-		weight, err := sdk.NewDecFromStr(fields[1])
+		weight, err := cosmossdk_io_math.LegacyNewDecFromStr(fields[1])
 		if err != nil {
 			return options, err
 		}

@@ -6,6 +6,8 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	cosmossdk_io_math "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -20,10 +22,10 @@ const (
 
 // Default governance params
 var (
-	DefaultMinDepositTokens = sdk.NewInt(10000000)
-	DefaultQuorum           = sdk.NewDecWithPrec(334, 3)
-	DefaultThreshold        = sdk.NewDecWithPrec(5, 1)
-	DefaultVetoThreshold    = sdk.NewDecWithPrec(334, 3)
+	DefaultMinDepositTokens = cosmossdk_io_math.NewInt(10000000)
+	DefaultQuorum           = cosmossdk_io_math.LegacyNewDecWithPrec(334, 3)
+	DefaultThreshold        = cosmossdk_io_math.LegacyNewDecWithPrec(5, 1)
+	DefaultVetoThreshold    = cosmossdk_io_math.LegacyNewDecWithPrec(334, 3)
 )
 
 // Parameter store key
@@ -66,7 +68,7 @@ func (dp DepositParams) String() string {
 
 // Equal checks equality of DepositParams
 func (dp DepositParams) Equal(dp2 DepositParams) bool {
-	return dp.MinDeposit.IsEqual(dp2.MinDeposit) && dp.MaxDepositPeriod == dp2.MaxDepositPeriod
+	return dp.MinDeposit.Equal(dp2.MinDeposit) && dp.MaxDepositPeriod == dp2.MaxDepositPeriod
 }
 
 func validateDepositParams(i interface{}) error {
@@ -86,7 +88,7 @@ func validateDepositParams(i interface{}) error {
 }
 
 // NewTallyParams creates a new TallyParams object
-func NewTallyParams(quorum, threshold, vetoThreshold sdk.Dec) TallyParams {
+func NewTallyParams(quorum, threshold, vetoThreshold cosmossdk_io_math.LegacyDec) TallyParams {
 	return TallyParams{
 		Quorum:        quorum,
 		Threshold:     threshold,
@@ -119,19 +121,19 @@ func validateTallyParams(i interface{}) error {
 	if v.Quorum.IsNegative() {
 		return fmt.Errorf("quorom cannot be negative: %s", v.Quorum)
 	}
-	if v.Quorum.GT(sdk.OneDec()) {
+	if v.Quorum.GT(cosmossdk_io_math.LegacyOneDec()) {
 		return fmt.Errorf("quorom too large: %s", v)
 	}
 	if !v.Threshold.IsPositive() {
 		return fmt.Errorf("vote threshold must be positive: %s", v.Threshold)
 	}
-	if v.Threshold.GT(sdk.OneDec()) {
+	if v.Threshold.GT(cosmossdk_io_math.LegacyOneDec()) {
 		return fmt.Errorf("vote threshold too large: %s", v)
 	}
 	if !v.VetoThreshold.IsPositive() {
 		return fmt.Errorf("veto threshold must be positive: %s", v.Threshold)
 	}
-	if v.VetoThreshold.GT(sdk.OneDec()) {
+	if v.VetoThreshold.GT(cosmossdk_io_math.LegacyOneDec()) {
 		return fmt.Errorf("veto threshold too large: %s", v)
 	}
 
